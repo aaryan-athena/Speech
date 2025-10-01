@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Speech Practice Coach{% endblock %}
+
+{% block content %}
+<section class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+  <div>
+    <p class="text-sm uppercase tracking-[0.3em] text-indigo-200/80">Admin dashboard</p>
+    <h1 class="mt-2 text-3xl font-semibold text-white">Manage user access</h1>
+    <p class="mt-3 text-sm text-slate-200/80">Invite new speakers, reset access, and keep your coaching workspace organized.</p>
+  </div>
+  <a class="inline-flex items-center justify-center rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40 hover:text-white" href="{{ url_for('coach') }}">Back to Speech Coach</a>
+</section>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% set alert_styles = {
+  'danger': 'border-rose-400/60 bg-rose-500/10 text-rose-100',
+  'success': 'border-emerald-400/60 bg-emerald-500/10 text-emerald-100',
+  'info': 'border-sky-400/60 bg-sky-500/10 text-sky-100'
+} %}
+<section class="mt-8 space-y-3">
+  {% for category, message in messages %}
+  {% set level = 'danger' if category == 'error' else 'success' if category == 'success' else 'info' %}
+  <div class="flex items-start justify-between gap-4 rounded-2xl border px-4 py-3 text-sm {{ alert_styles[level] }}">
+    <span>{{ message }}</span>
+    <button type="button" class="text-lg leading-none text-white/70 transition hover:text-white" onclick="this.parentElement.remove()">&times;</button>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+{% endwith %}
+
+<section class="mt-8 rounded-3xl border border-white/10 bg-white/10 p-8 shadow-panel backdrop-blur-xl">
+  <h2 class="text-xl font-semibold text-white">Create a new user</h2>
+  <form method="post" class="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3" novalidate>
+    <input type="hidden" name="action" value="create">
+    <label class="flex flex-col gap-2 text-sm">
+      <span class="font-medium text-slate-100">Email</span>
+      <input type="email" name="email" required autocomplete="email" class="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder:text-slate-300 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-300/60">
+    </label>
+    <label class="flex flex-col gap-2 text-sm">
+      <span class="font-medium text-slate-100">Role</span>
+      <select name="role" class="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-300/60">
+        {% for role in ROLE_OPTIONS %}
+        <option value="{{ role }}" {% if role == "user" %}selected{% endif %} class="bg-slate-900 text-white">{{ role|capitalize }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="flex flex-col gap-2 text-sm">
+      <span class="font-medium text-slate-100">Password</span>
+      <input type="password" name="password" required autocomplete="new-password" class="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder:text-slate-300 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-300/60">
+      <span class="text-xs text-slate-200/70">At least 8 characters with letters and numbers.</span>
+    </label>
+    <label class="flex flex-col gap-2 text-sm">
+      <span class="font-medium text-slate-100">Confirm password</span>
+      <input type="password" name="confirm_password" required autocomplete="new-password" class="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder:text-slate-300 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-300/60">
+    </label>
+    <div class="flex items-end">
+      <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200">Create user</button>
+    </div>
+  </form>
+</section>
+
+<section class="mt-8 rounded-3xl border border-white/10 bg-white/10 p-8 shadow-panel backdrop-blur-xl">
+  <h2 class="text-xl font-semibold text-white">Existing users</h2>
+  <div class="mt-6 overflow-hidden rounded-2xl border border-white/10">
+    <table class="w-full min-w-full divide-y divide-white/10 text-sm text-slate-100">
+      <thead class="bg-white/5 text-xs uppercase tracking-wide text-slate-300/80">
+        <tr>
+          <th scope="col" class="px-4 py-3 text-left">Email</th>
+          <th scope="col" class="px-4 py-3 text-left">Role</th>
+          <th scope="col" class="px-4 py-3 text-left">Password</th>
+          <th scope="col" class="px-4 py-3 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/5">
+        {% for user in users %}
+        {% set update_id = 'update_' ~ loop.index %}
+        {% set delete_id = 'delete_' ~ loop.index %}
+        <tr class="bg-black/10 hover:bg-black/20">
+          <td class="px-4 py-3 align-top">
+            <label class="sr-only" for="email_{{ loop.index }}">Email</label>
+            <input id="email_{{ loop.index }}" form="{{ update_id }}" type="email" name="email" value="{{ user.email }}" class="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-300/60">
+            <input form="{{ update_id }}" type="hidden" name="original_email" value="{{ user.email }}">
+          </td>
+          <td class="px-4 py-3 align-top">
+            <label class="sr-only" for="role_{{ loop.index }}">Role</label>
+            <select id="role_{{ loop.index }}" form="{{ update_id }}" name="role" class="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-300/60">
+              {% for role in ROLE_OPTIONS %}
+              <option value="{{ role }}" {% if role == user.role %}selected{% endif %} class="bg-slate-900 text-white">{{ role|capitalize }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td class="px-4 py-3 align-top">
+            <div class="space-y-2">
+              <label class="sr-only" for="password_{{ loop.index }}">Password</label>
+              <input id="password_{{ loop.index }}" form="{{ update_id }}" type="password" name="password" placeholder="New password" class="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-300/60">
+              <label class="sr-only" for="confirm_{{ loop.index }}">Confirm password</label>
+              <input id="confirm_{{ loop.index }}" form="{{ update_id }}" type="password" name="confirm_password" placeholder="Confirm password" class="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-300/60">
+            </div>
+          </td>
+          <td class="px-4 py-3 align-top text-right">
+            <div class="flex flex-wrap justify-end gap-2">
+              <a href="{{ url_for('admin_users', user=user.email) }}" class="inline-flex items-center justify-center rounded-lg border border-white/20 px-3 py-2 text-sm font-semibold text-white/80 transition hover:border-white/40 hover:text-white">History</a>
+              <form id="{{ update_id }}" method="post" class="inline">
+                <input type="hidden" name="action" value="update">
+              </form>
+              <button form="{{ update_id }}" type="submit" class="inline-flex items-center justify-center rounded-lg border border-indigo-300/60 px-3 py-2 text-sm font-semibold text-indigo-100 transition hover:border-indigo-200 hover:text-white">Save</button>
+              <form id="{{ delete_id }}" method="post" class="inline" onsubmit="return confirm('Delete {{ user.email }}?');">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="email" value="{{ user.email }}">
+                <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-rose-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-400">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="4" class="px-4 py-6 text-center text-sm text-slate-200/70">No users found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+<section class="mt-8 rounded-3xl border border-white/10 bg-white/10 p-8 shadow-panel backdrop-blur-xl">
+  <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h2 class="text-xl font-semibold text-white">Practice history audit</h2>
+      <p class="text-sm text-slate-200/80">Select a user to inspect their saved sessions without leaving the admin panel.</p>
+    </div>
+    <form method="get" class="flex flex-col gap-3 md:flex-row md:items-end md:gap-4">
+      <label class="flex flex-col gap-2 text-sm text-slate-100">
+        <span class="font-medium text-slate-100">Choose user</span>
+        <select name="user" class="min-w-[220px] rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-300/60">
+          <option value="">Select a user</option>
+          {% for user in users %}
+          <option value="{{ user.email }}" {% if selected_email and user.email|lower == selected_email|lower %}selected{% endif %} class="bg-slate-900 text-white">{{ user.email }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <div class="flex flex-wrap gap-2">
+        <button type="submit" class="rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-200">View history</button>
+        {% if selected_email %}
+        <a href="{{ url_for('admin_users') }}" class="rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold text-white/80 transition hover:border-white/40 hover:text-white">Clear</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+  <div class="mt-6">
+    {% if selected_missing %}
+    <div class="rounded-2xl border border-rose-400/50 bg-rose-500/10 p-6 text-sm text-rose-100">
+      We couldn't find any user data for <span class="font-semibold">{{ selected_email }}</span>.
+    </div>
+    {% elif selected_user %}
+    {% set summary = audit_summary or {'total_sessions': 0, 'average_score': None, 'best_score': None, 'last_score': None, 'last_practiced': None} %}
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <article class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+        <p class="text-xs uppercase tracking-wider text-slate-300/70">Total sessions</p>
+        <p class="mt-3 text-3xl font-semibold text-white">{{ summary.total_sessions }}</p>
+      </article>
+      <article class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+        <p class="text-xs uppercase tracking-wider text-slate-300/70">Average score</p>
+        <p class="mt-3 text-3xl font-semibold text-white">
+          {% if summary.average_score is not none %}
+          {{ '%.0f' % (summary.average_score|float) }}%
+          {% else %}
+          --
+          {% endif %}
+        </p>
+      </article>
+      <article class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+        <p class="text-xs uppercase tracking-wider text-slate-300/70">Best score</p>
+        <p class="mt-3 text-3xl font-semibold text-emerald-300">
+          {% if summary.best_score is not none %}
+          {{ '%.0f' % (summary.best_score|float) }}%
+          {% else %}
+          --
+          {% endif %}
+        </p>
+      </article>
+      <article class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+        <p class="text-xs uppercase tracking-wider text-slate-300/70">Last session</p>
+        <p class="mt-3 text-sm text-slate-200/80">
+          {% if summary.last_practiced %}
+          {{ summary.last_practiced.strftime('%d %b %Y %H:%M %Z') if summary.last_practiced.tzinfo else summary.last_practiced.strftime('%d %b %Y %H:%M') }}
+          {% else %}
+          No sessions yet
+          {% endif %}
+        </p>
+        {% if summary.last_score is not none %}
+        <p class="text-2xl font-semibold text-white">{{ '%.0f' % (summary.last_score|float) }}%</p>
+        {% endif %}
+      </article>
+    </div>
+    {% if audit_entries %}
+    <div class="mt-6 overflow-x-auto">
+      <table class="min-w-full divide-y divide-white/10 text-sm text-slate-100">
+        <thead class="bg-white/5 text-xs uppercase tracking-wide text-slate-300/80">
+          <tr>
+            <th scope="col" class="px-4 py-3 text-left">Date</th>
+            <th scope="col" class="px-4 py-3 text-left">Sentence</th>
+            <th scope="col" class="px-4 py-3 text-left">Transcript</th>
+            <th scope="col" class="px-4 py-3 text-right">Score</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          {% for entry in audit_entries %}
+          <tr class="bg-black/10 hover:bg-black/20">
+            <td class="px-4 py-3 align-top whitespace-nowrap">{{ entry.created_at.strftime('%d %b %Y %H:%M') if entry.created_at else '' }}</td>
+            <td class="px-4 py-3 align-top text-sm text-white/90">{{ entry.target or 'Sentence ' ~ entry.sentence_id }}</td>
+            <td class="px-4 py-3 align-top text-xs text-slate-200/80">
+              {{ entry.transcript or '--' }}
+              <div class="mt-2 text-[11px] uppercase tracking-wide text-slate-400/80">ID: {{ entry.id }}</div>
+            </td>
+            <td class="px-4 py-3 align-top text-right text-base font-semibold text-emerald-300">{{ '%.0f' % (entry.score|float) }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="mt-6 rounded-2xl border border-dashed border-white/20 bg-black/20 p-8 text-center text-sm text-slate-200/80">
+      No practice sessions saved yet for {{ selected_user.email }}.
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="rounded-2xl border border-white/20 bg-black/20 p-8 text-center text-sm text-slate-200/80">
+      Choose a user above to review their practice history.
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

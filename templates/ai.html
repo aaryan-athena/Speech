@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}Ai Saarthi - Speech Practice Coach{% endblock %}
+
+{% block head_extra %}
+  {{ super() }}
+  <style>
+    .ai-panel {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(148, 163, 255, 0.25);
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<section class="mx-auto flex max-w-3xl flex-col gap-10">
+  <header class="space-y-4 text-center">
+    <h1 class="text-4xl font-semibold text-white">Ai Saarthi</h1>
+    <p class="text-base text-slate-200/80">
+      Share your thoughts and Ai Saarthi will craft a concise, spoken response tailored to your prompt.
+    </p>
+  </header>
+
+  <div class="ai-panel rounded-3xl p-8 shadow-panel backdrop-blur-xl">
+    <div class="flex flex-col gap-8">
+      <div class="space-y-6">
+        <h2 class="text-lg font-semibold text-white">Recorder</h2>
+        <p class="text-sm text-slate-200/80">
+          Start the recorder, speak naturally, then stop to let Ai Saarthi analyse and respond.
+        </p>
+        <div class="flex flex-col gap-4 sm:flex-row">
+          <button id="aiStart" class="inline-flex w-full items-center justify-center rounded-xl bg-indigo-500 px-4 py-3 text-base font-semibold text-white transition hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-200">
+            Start Recording
+          </button>
+          <button id="aiStop" class="inline-flex w-full items-center justify-center rounded-xl bg-slate-700 px-4 py-3 text-base font-semibold text-white transition hover:bg-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-200 disabled:cursor-not-allowed disabled:bg-slate-800/60" disabled>
+            Stop Recording
+          </button>
+        </div>
+        <p id="aiStatus" class="text-sm text-slate-200/70">Waiting to record...</p>
+      </div>
+
+      <div class="flex flex-col items-center gap-4">
+        <div class="relative flex w-full max-w-sm flex-col items-center gap-4">
+          <img id="aiAvatar" src="{{ url_for('static', filename='media/an.png') }}" alt="Ai Saarthi guide" class="w-full max-w-xs rounded-3xl border border-white/10 bg-white/10 p-4 shadow-lg" loading="lazy">
+          <video id="aiVideo" class="w-full max-w-sm rounded-3xl border border-white/20 shadow-panel" src="{{ url_for('static', filename='video/demo.mp4') }}" loop muted playsinline hidden></video>
+        </div>
+        <audio id="aiAudio" class="w-full max-w-sm" controls hidden></audio>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-panel backdrop-blur-xl">
+    <h2 class="text-lg font-semibold text-white">How it works</h2>
+    <ol class="mt-4 list-decimal space-y-2 pl-5 text-sm text-slate-200/85">
+      <li>Tap <strong>Start Recording</strong> and share your question or topic.</li>
+      <li>Stop the capture to send audio to Ai Saarthi for transcription and analysis.</li>
+      <li>Listen to the generated guidance while the preview video plays.</li>
+    </ol>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    (() => {
+      const startBtn = document.getElementById('aiStart');
+      const stopBtn = document.getElementById('aiStop');
+      const statusEl = document.getElementById('aiStatus');
+      const audioEl = document.getElementById('aiAudio');
+      const videoEl = document.getElementById('aiVideo');
+      const avatarEl = document.getElementById('aiAvatar');
+      const cleanupUrl = '{{ url_for("ai.cleanup_audio") }}';
+
+      let mediaRecorder;
+      let chunks = [];
+      let currentAudioFile = null;
+
+      const cleanupCurrentAudio = async (options = {}) => {
+        if (!currentAudioFile) return;
+        const filename = currentAudioFile;
+        const requestInit = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename }),
+        };
+        if (options.keepalive) {
+          requestInit.keepalive = true;
+        }
+        try {
+          await fetch(cleanupUrl, requestInit);
+        } catch (error) {
+          if (!options.silent) {
+            console.error('Audio cleanup failed', error);
+          }
+        } finally {
+          if (currentAudioFile === filename) {
+            currentAudioFile = null;
+          }
+        }
+      };
+
+      function showVideo() {
+        if (avatarEl) {
+          avatarEl.hidden = true;
+        }
+        if (videoEl) {
+          videoEl.hidden = false;
+          videoEl.currentTime = 0;
+          videoEl.play().catch(() => {});
+        }
+      }
+
+      function hideVideo() {
+        if (videoEl) {
+          videoEl.pause();
+          videoEl.currentTime = 0;
+          videoEl.hidden = true;
+        }
+        if (avatarEl) {
+          avatarEl.hidden = false;
+        }
+      }
+
+      function resetAudio() {
+        if (!audioEl) return;
+        audioEl.pause();
+        audioEl.currentTime = 0;
+        audioEl.hidden = true;
+        audioEl.removeAttribute('src');
+        audioEl.load();
+        audioEl.onplay = null;
+        audioEl.onended = null;
+        audioEl.onpause = null;
+      }
+
+      async function startRecording() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          await cleanupCurrentAudio({ silent: true });
+          chunks = [];
+          mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+          mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+              chunks.push(event.data);
+            }
+          };
+          mediaRecorder.onstop = handleStop;
+          mediaRecorder.start();
+          resetAudio();
+          hideVideo();
+          startBtn.disabled = true;
+          stopBtn.disabled = false;
+          statusEl.textContent = 'Recording - tap stop when you are done.';
+        } catch (error) {
+          statusEl.textContent = 'Unable to access microphone.';
+          console.error(error);
+        }
+      }
+
+      async function handleStop() {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const formData = new FormData();
+        formData.append('audio_data', blob, 'input.webm');
+        statusEl.textContent = 'Processing response...';
+
+        try {
+          const response = await fetch('{{ url_for('ai.process_audio') }}', {
+            method: 'POST',
+            body: formData,
+          });
+          const payload = await response.json();
+          if (!response.ok) {
+            throw new Error(payload.error || 'Processing failed');
+          }
+
+          if (payload.audio_url) {
+            currentAudioFile = payload.audio_filename || null;
+            audioEl.src = payload.audio_url;
+            audioEl.hidden = false;
+            audioEl.onplay = () => {
+              showVideo();
+              statusEl.textContent = 'Playing response...';
+            };
+            audioEl.onended = async () => {
+              hideVideo();
+              statusEl.textContent = 'Ready for another recording.';
+              await cleanupCurrentAudio();
+              resetAudio();
+            };
+            audioEl.onpause = () => {
+              if (!audioEl.ended) {
+                hideVideo();
+                statusEl.textContent = 'Playback paused.';
+              }
+            };
+            audioEl.play().catch(() => {
+              hideVideo();
+              statusEl.textContent = 'Response ready. Tap play to listen.';
+            });
+          } else {
+            hideVideo();
+            statusEl.textContent = 'Ready for another recording.';
+          }
+        } catch (error) {
+          statusEl.textContent = error.message;
+          await cleanupCurrentAudio({ silent: true });
+          resetAudio();
+          hideVideo();
+          console.error(error);
+        } finally {
+          startBtn.disabled = false;
+          stopBtn.disabled = true;
+        }
+      }
+
+      startBtn?.addEventListener('click', startRecording);
+      stopBtn?.addEventListener('click', () => {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+        }
+      });
+
+      window.addEventListener('beforeunload', () => {
+        if (!currentAudioFile) return;
+        try {
+          const payload = JSON.stringify({ filename: currentAudioFile });
+          const beaconData = new Blob([payload], { type: 'application/json' });
+          navigator.sendBeacon(cleanupUrl, beaconData);
+        } catch (error) {
+          // Ignore cleanup errors on unload
+        }
+      });
+    })();
+  </script>
+{% endblock %}

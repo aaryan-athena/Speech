@@ -1,0 +1,95 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Dashboard - Speech Practice Coach{% endblock %}
+
+{% block content %}
+<section class="space-y-8">
+  <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div>
+      <p class="text-sm uppercase tracking-[0.3em] text-indigo-200/80">Progress overview</p>
+      <h1 class="mt-2 text-3xl font-semibold text-white">Welcome back, {{ current_user.id }}</h1>
+      <p class="mt-3 text-sm text-slate-200/80">Track how your pronunciation is improving each time you practise with the Speech Coach.</p>
+    </div>
+    <a href="{{ url_for('coach') }}" class="inline-flex items-center rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200">Start a new practice</a>
+  </header>
+
+  <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <article class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+      <p class="text-xs uppercase tracking-wider text-slate-300/70">Total sessions</p>
+      <p class="mt-3 text-3xl font-semibold text-white">{{ progress.total_sessions }}</p>
+    </article>
+    <article class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+      <p class="text-xs uppercase tracking-wider text-slate-300/70">Average score</p>
+      <p class="mt-3 text-3xl font-semibold text-white">
+        {% if progress.average_score is not none %}
+        {{ '%.0f' % (progress.average_score|float) }}%
+        {% else %}
+        --
+        {% endif %}
+      </p>
+    </article>
+    <article class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+      <p class="text-xs uppercase tracking-wider text-slate-300/70">Best score</p>
+      <p class="mt-3 text-3xl font-semibold text-emerald-300">
+        {% if progress.best_score is not none %}
+        {{ '%.0f' % (progress.best_score|float) }}%
+        {% else %}
+        --
+        {% endif %}
+      </p>
+    </article>
+    <article class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+      <p class="text-xs uppercase tracking-wider text-slate-300/70">Last session</p>
+      <p class="mt-3 text-sm text-slate-200/80">
+        {% if progress.last_practiced %}
+        {{ progress.last_practiced.strftime('%d %b %Y %H:%M %Z') if progress.last_practiced.tzinfo else progress.last_practiced.strftime('%d %b %Y %H:%M') }}
+        {% else %}
+        No sessions yet
+        {% endif %}
+      </p>
+      {% if progress.last_score is not none %}
+      <p class="text-2xl font-semibold text-white">{{ '%.0f' % (progress.last_score|float) }}%</p>
+      {% endif %}
+    </article>
+  </section>
+
+  <section class="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-panel backdrop-blur-xl">
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-semibold text-white">Recent practice sessions</h2>
+        <p class="text-sm text-slate-200/70">Scores are saved each time you finish a recording.</p>
+      </div>
+      <a href="{{ url_for('coach') }}" class="hidden rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40 md:inline-flex">Record again</a>
+    </div>
+
+    {% if entries %}
+    <div class="mt-6 overflow-x-auto">
+      <table class="min-w-full divide-y divide-white/10 text-sm text-slate-100">
+        <thead class="bg-white/5 text-xs uppercase tracking-wide text-slate-300/80">
+          <tr>
+            <th scope="col" class="px-4 py-3 text-left">Date</th>
+            <th scope="col" class="px-4 py-3 text-left">Sentence</th>
+            <th scope="col" class="px-4 py-3 text-left">Transcript</th>
+            <th scope="col" class="px-4 py-3 text-right">Score</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          {% for entry in entries %}
+          <tr class="bg-black/10 hover:bg-black/20">
+            <td class="px-4 py-3 align-top whitespace-nowrap">{{ entry.created_at.strftime('%d %b %Y %H:%M') if entry.created_at else '' }}</td>
+            <td class="px-4 py-3 align-top text-sm text-white/90">{{ entry.target or 'Sentence ' ~ entry.sentence_id }}</td>
+            <td class="px-4 py-3 align-top text-xs text-slate-200/80">{{ entry.transcript or '--' }}</td>
+            <td class="px-4 py-3 align-top text-right text-base font-semibold text-emerald-300">{{ '%.0f' % (entry.score|float) }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="mt-6 rounded-2xl border border-dashed border-white/20 bg-black/20 p-8 text-center text-sm text-slate-200/80">
+      <p>No practice sessions saved yet. Record your first attempt to start tracking your progress.</p>
+    </div>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}
