@@ -4,6 +4,7 @@ import difflib
 import json
 import os
 import re
+import stat
 import tempfile
 import uuid
 from datetime import datetime, timezone, timedelta
@@ -32,6 +33,27 @@ if TYPE_CHECKING:
     from google.cloud.firestore import Client
 
 load_dotenv()
+
+# Write Firebase credentials from secret to file for Render deployment
+def write_firebase_credentials():
+    """Write Firebase credentials from environment variable to file for cloud deployment."""
+    creds_json = os.environ.get("FIREBASE_CREDENTIALS_JSON")
+    if not creds_json:
+        return
+    target_path = os.environ.get("FIREBASE_CREDENTIALS", "/tmp/firebase-admin-key.json")
+    # Write securely
+    with open(target_path, "w") as f:
+        f.write(creds_json)
+    # Make file readable only by owner where possible
+    try:
+        os.chmod(target_path, stat.S_IRUSR | stat.S_IWUSR)
+    except Exception:
+        pass
+    # Ensure Google SDKs pick it up
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = target_path
+    os.environ["FIREBASE_CREDENTIALS"] = target_path
+
+write_firebase_credentials()
 
 app = Flask(__name__)
 init_ai_app(app)
@@ -782,5 +804,6 @@ def logout():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
 
