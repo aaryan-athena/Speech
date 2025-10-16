@@ -434,9 +434,26 @@ def _require_admin() -> None:
 def load_model() -> whisper.Whisper:
     global _MODEL
     if _MODEL is None:
-        MODEL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        _MODEL = whisper.load_model(WHISPER_MODEL_NAME, download_root=str(MODEL_CACHE_DIR))
+        try:
+            MODEL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+            app.logger.info(f"Loading Whisper model '{WHISPER_MODEL_NAME}' to {MODEL_CACHE_DIR}")
+            _MODEL = whisper.load_model(WHISPER_MODEL_NAME, download_root=str(MODEL_CACHE_DIR))
+            app.logger.info("Whisper model loaded successfully")
+        except Exception as exc:
+            app.logger.error(f"Failed to load Whisper model: {exc}")
+            raise RuntimeError(f"Could not initialize Whisper model: {exc}")
     return _MODEL
+
+
+def initialize_model_on_startup():
+    """Pre-load the Whisper model during app startup to avoid first-request timeout."""
+    try:
+        app.logger.info("Pre-loading Whisper model during startup...")
+        load_model()
+        app.logger.info("✓ Whisper model ready")
+    except Exception as exc:
+        app.logger.warning(f"Could not pre-load model at startup: {exc}")
+        app.logger.warning("Model will be loaded on first transcription request")
 
 
 def normalize_text(value: str) -> str:
@@ -801,6 +818,10 @@ def logout():
     logout_user()
     flash("You have been logged out.", "info")
     return redirect(url_for("login"))
+
+
+# Pre-load Whisper model during app initialization to avoid first-request timeout
+initialize_model_on_startup()
 
 
 if __name__ == "__main__":
