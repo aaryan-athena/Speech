@@ -181,10 +181,10 @@ SENTENCES = [
 PARAGRAPHS = [
     {"id": 101, "text": "Yesterday, I went to the park with my family. The weather was beautiful, so we enjoyed a picnic lunch under a large tree. After eating, my children played on the swings and on the slide. I read a book and relaxed on the grass. It was a peaceful and enjoyable afternoon before we headed home in the late afternoon"},
     {"id": 102, "text": "Don’t be fooled by its name – small talk is anything but small. Various studies show that nearly a third of our speech is small talk. Practicing this part of daily English conversation is vital. To ace your next interaction with a native speaker, we recommend learning open-ended questions and rehearsing how to answer them, and expanding your vocabulary for fluent conversation either alone or with a speaking partner. "},
-    {"id": 103, "text": "Try to spend 15 minutes every day reading English texts. Find a comfortable spot where you can focus on a book, an article, etc. without the risk of being interrupted. Don’t know what to read? Try news websites like the BBC for free daily articles featuring easy-to-read paragraphs to improve your English."},
+    {"id": 103, "text": "Try to spend 15 minutes every day reading English texts. Find a comfortable spot where you can focus on a book, an article, etc. without the risk of being interrupted. Don't know what to read? Try news websites like the BBC for free daily articles featuring easy-to-read paragraphs to improve your English."},
 ]
 
-WHISPER_MODEL_NAME = os.environ.get("WHISPER_MODEL", "base")
+WHISPER_MODEL_NAME = os.environ.get("WHISPER_MODEL", "tiny")
 MODEL_CACHE_DIR = Path(os.environ.get("WHISPER_CACHE_DIR", Path.cwd() / "models"))
 _MODEL: Optional[whisper.Whisper] = None
 
@@ -447,13 +447,15 @@ def load_model() -> whisper.Whisper:
 
 def initialize_model_on_startup():
     """Pre-load the Whisper model during app startup to avoid first-request timeout."""
-    try:
-        app.logger.info("Pre-loading Whisper model during startup...")
-        load_model()
-        app.logger.info("✓ Whisper model ready")
-    except Exception as exc:
-        app.logger.warning(f"Could not pre-load model at startup: {exc}")
-        app.logger.warning("Model will be loaded on first transcription request")
+    # Disabled to reduce memory usage on free tier - model loads on first use
+    app.logger.info("Whisper model will be loaded on first transcription request")
+    # try:
+    #     app.logger.info("Pre-loading Whisper model during startup...")
+    #     load_model()
+    #     app.logger.info("✓ Whisper model ready")
+    # except Exception as exc:
+    #     app.logger.warning(f"Could not pre-load model at startup: {exc}")
+    #     app.logger.warning("Model will be loaded on first transcription request")
 
 
 def normalize_text(value: str) -> str:
