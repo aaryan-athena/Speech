@@ -442,20 +442,20 @@ def load_model() -> whisper.Whisper:
         except Exception as exc:
             app.logger.error(f"Failed to load Whisper model: {exc}")
             raise RuntimeError(f"Could not initialize Whisper model: {exc}")
+    else:
+        app.logger.info("Using cached Whisper model from memory")
     return _MODEL
 
 
 def initialize_model_on_startup():
     """Pre-load the Whisper model during app startup to avoid first-request timeout."""
-    # Disabled to reduce memory usage on free tier - model loads on first use
-    app.logger.info("Whisper model will be loaded on first transcription request")
-    # try:
-    #     app.logger.info("Pre-loading Whisper model during startup...")
-    #     load_model()
-    #     app.logger.info("✓ Whisper model ready")
-    # except Exception as exc:
-    #     app.logger.warning(f"Could not pre-load model at startup: {exc}")
-    #     app.logger.warning("Model will be loaded on first transcription request")
+    try:
+        app.logger.info("Pre-loading Whisper model during startup...")
+        load_model()
+        app.logger.info("✓ Whisper model ready")
+    except Exception as exc:
+        app.logger.warning(f"Could not pre-load model at startup: {exc}")
+        app.logger.warning("Model will be loaded on first transcription request")
 
 
 def normalize_text(value: str) -> str:
