@@ -47,7 +47,7 @@ APP_ADMIN_EMAIL=your-email@example.com
 APP_ADMIN_PASSWORD=your-secure-password
 ```
 
-#### Google API (for AI Saarthi):
+#### Google API (for AI Companion):
 ```
 GOOGLE_API_KEY=your-google-api-key
 ```

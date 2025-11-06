@@ -15,7 +15,7 @@ from requests.exceptions import HTTPError
 
 from gtts import gTTS  # type: ignore
 
-bp = Blueprint("ai", __name__, url_prefix="/aisaarthi")
+bp = Blueprint("ai", __name__, url_prefix="/aicompanion")
 
 _GEMINI_MODEL = "gemini-2.0-flash"
 _GEMINI_ENDPOINT = (
@@ -25,7 +25,7 @@ _GEMINI_ENDPOINT = (
 
 
 def init_app(app) -> None:
-    """Configure the hosting Flask application for the Ai Saarthi module.
+    """Configure the hosting Flask application for the AI Companion module.
 
     This sets up upload locations, validates external tool availability, and
     ensures the Gemini API key is present so requests can be made when the
@@ -64,14 +64,14 @@ def init_app(app) -> None:
 @bp.get("/")
 @login_required
 def ai_home():
-    """Render the conversational Ai Saarthi interface."""
+    """Render the conversational AI Companion interface."""
     return render_template("ai.html")
 
 
 @bp.post("/process_audio")
 @login_required
 def process_audio():
-    """Handle audio submissions from the Ai Saarthi interface."""
+    """Handle audio submissions from the AI Companion interface."""
 
     history = list(session.get("history", []))
     system_msg = {

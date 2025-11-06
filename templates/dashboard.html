@@ -2,94 +2,181 @@
 
 {% block title %}Dashboard - Speech Practice Coach{% endblock %}
 
+{% block head_extra %}
+<style>
+  /* Dashboard-specific styles to ensure they load */
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid var(--border-color);
+  }
+  
+  .dashboard-title {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+    font-weight: 700;
+  }
+  
+  .dashboard-subtitle {
+    color: var(--text-light);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  
+  .stats-card {
+    background: linear-gradient(135deg, var(--bg-white) 0%, var(--bg-light) 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid var(--border-color);
+  }
+  
+  .stats-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-hover);
+  }
+  
+  .stats-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  
+  .stats-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    line-height: 1;
+  }
+  
+  .stats-value.highlight {
+    color: var(--secondary-color);
+  }
+  
+  .empty-state {
+    padding: 3rem;
+    text-align: center;
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-white) 100%);
+  }
+  
+  .empty-state p {
+    color: var(--text-light);
+    font-size: 1rem;
+    margin: 0;
+  }
+  
+  .empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="space-y-8">
-  <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-    <div>
-      <p class="text-sm uppercase tracking-[0.3em] text-indigo-200/80">Progress overview</p>
-      <h1 class="mt-2 text-3xl font-semibold text-white">Welcome back, {{ current_user.id }}</h1>
-      <p class="mt-3 text-sm text-slate-200/80">Track how your pronunciation is improving each time you practise with the Speech Coach.</p>
-    </div>
-    <a href="{{ url_for('coach') }}" class="inline-flex items-center rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200">Start a new practice</a>
-  </header>
-
-  <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-    <article class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
-      <p class="text-xs uppercase tracking-wider text-slate-300/70">Total sessions</p>
-      <p class="mt-3 text-3xl font-semibold text-white">{{ progress.total_sessions }}</p>
-    </article>
-    <article class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
-      <p class="text-xs uppercase tracking-wider text-slate-300/70">Average score</p>
-      <p class="mt-3 text-3xl font-semibold text-white">
-        {% if progress.average_score is not none %}
-        {{ '%.0f' % (progress.average_score|float) }}%
-        {% else %}
-        --
-        {% endif %}
-      </p>
-    </article>
-    <article class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
-      <p class="text-xs uppercase tracking-wider text-slate-300/70">Best score</p>
-      <p class="mt-3 text-3xl font-semibold text-emerald-300">
-        {% if progress.best_score is not none %}
-        {{ '%.0f' % (progress.best_score|float) }}%
-        {% else %}
-        --
-        {% endif %}
-      </p>
-    </article>
-    <article class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
-      <p class="text-xs uppercase tracking-wider text-slate-300/70">Last session</p>
-      <p class="mt-3 text-sm text-slate-200/80">
-        {% if progress.last_practiced %}
-        {{ progress.last_practiced.strftime('%d %b %Y %H:%M %Z') if progress.last_practiced.tzinfo else progress.last_practiced.strftime('%d %b %Y %H:%M') }}
-        {% else %}
-        No sessions yet
-        {% endif %}
-      </p>
-      {% if progress.last_score is not none %}
-      <p class="text-2xl font-semibold text-white">{{ '%.0f' % (progress.last_score|float) }}%</p>
-      {% endif %}
-    </article>
-  </section>
-
-  <section class="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-panel backdrop-blur-xl">
-    <div class="flex items-center justify-between gap-4">
+<section class="page-section" style="background-color: var(--bg-light);">
+  <div class="container">
+    <div class="dashboard-header">
       <div>
-        <h2 class="text-xl font-semibold text-white">Recent practice sessions</h2>
-        <p class="text-sm text-slate-200/70">Scores are saved each time you finish a recording.</p>
+        <h1 class="dashboard-title">Welcome back, {{ current_user.id }}</h1>
+        <p class="dashboard-subtitle">Track how your pronunciation is improving each time you practice with the Speech Coach.</p>
       </div>
-      <a href="{{ url_for('coach') }}" class="hidden rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40 md:inline-flex">Record again</a>
+      <a href="{{ url_for('coach') }}" class="btn btn-primary">Start a new practice</a>
     </div>
 
-    {% if entries %}
-    <div class="mt-6 overflow-x-auto">
-      <table class="min-w-full divide-y divide-white/10 text-sm text-slate-100">
-        <thead class="bg-white/5 text-xs uppercase tracking-wide text-slate-300/80">
-          <tr>
-            <th scope="col" class="px-4 py-3 text-left">Date</th>
-            <th scope="col" class="px-4 py-3 text-left">Sentence</th>
-            <th scope="col" class="px-4 py-3 text-left">Transcript</th>
-            <th scope="col" class="px-4 py-3 text-right">Score</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-white/5">
-          {% for entry in entries %}
-          <tr class="bg-black/10 hover:bg-black/20">
-            <td class="px-4 py-3 align-top whitespace-nowrap">{{ entry.created_at.strftime('%d %b %Y %H:%M') if entry.created_at else '' }}</td>
-            <td class="px-4 py-3 align-top text-sm text-white/90">{{ entry.target or 'Sentence ' ~ entry.sentence_id }}</td>
-            <td class="px-4 py-3 align-top text-xs text-slate-200/80">{{ entry.transcript or '--' }}</td>
-            <td class="px-4 py-3 align-top text-right text-base font-semibold text-emerald-300">{{ '%.0f' % (entry.score|float) }}%</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 3rem;">
+      <div class="stats-card">
+        <p class="stats-label">Total sessions</p>
+        <p class="stats-value">{{ progress.total_sessions }}</p>
+      </div>
+      <div class="stats-card">
+        <p class="stats-label">Average score</p>
+        <p class="stats-value">
+          {% if progress.average_score is not none %}
+          {{ '%.0f' % (progress.average_score|float) }}%
+          {% else %}
+          --
+          {% endif %}
+        </p>
+      </div>
+      <div class="stats-card">
+        <p class="stats-label">Best score</p>
+        <p class="stats-value highlight">
+          {% if progress.best_score is not none %}
+          {{ '%.0f' % (progress.best_score|float) }}%
+          {% else %}
+          --
+          {% endif %}
+        </p>
+      </div>
+      <div class="stats-card">
+        <p class="stats-label">Last session</p>
+        <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem;">
+          {% if progress.last_practiced %}
+          {{ progress.last_practiced.strftime('%d %b %Y') }}<br>
+          <span style="font-size: 0.85rem;">{{ progress.last_practiced.strftime('%H:%M') }}</span>
+          {% else %}
+          No sessions yet
+          {% endif %}
+        </p>
+        {% if progress.last_score is not none %}
+        <p style="font-size: 1.8rem; font-weight: 700; color: var(--text-dark); margin-top: 0.5rem;">{{ '%.0f' % (progress.last_score|float) }}%</p>
+        {% endif %}
+      </div>
     </div>
-    {% else %}
-    <div class="mt-6 rounded-2xl border border-dashed border-white/20 bg-black/20 p-8 text-center text-sm text-slate-200/80">
-      <p>No practice sessions saved yet. Record your first attempt to start tracking your progress.</p>
+
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-dark); font-weight: 600;">Recent practice sessions</h2>
+          <p style="color: var(--text-light); font-size: 0.9rem;">Scores are saved each time you finish a recording.</p>
+        </div>
+        <a href="{{ url_for('coach') }}" class="btn btn-secondary">Record again</a>
+      </div>
+
+      {% if entries %}
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Sentence</th>
+              <th>Transcript</th>
+              <th style="text-align: right;">Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in entries %}
+            <tr>
+              <td style="white-space: nowrap; font-weight: 500;">{{ entry.created_at.strftime('%d %b %Y %H:%M') if entry.created_at else '' }}</td>
+              <td style="font-weight: 500; color: var(--text-dark);">{{ entry.target or 'Sentence ' ~ entry.sentence_id }}</td>
+              <td style="font-size: 0.9rem; color: var(--text-light); max-width: 300px;">{{ entry.transcript or '--' }}</td>
+              <td style="text-align: right; font-weight: 700; color: var(--secondary-color); font-size: 1.2rem;">{{ '%.0f' % (entry.score|float) }}%</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">📊</div>
+        <p>No practice sessions saved yet. Record your first attempt to start tracking your progress.</p>
+        <a href="{{ url_for('coach') }}" class="btn btn-primary" style="margin-top: 1.5rem;">Start Your First Session</a>
+      </div>
+      {% endif %}
     </div>
-    {% endif %}
-  </section>
+  </div>
 </section>
 {% endblock %}

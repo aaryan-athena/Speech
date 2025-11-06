@@ -3,72 +3,76 @@
 {% block title %}Speech Practice Coach{% endblock %}
 
 {% block content %}
-<section class="grid gap-12 lg:grid-cols-2 lg:items-center">
-  <div class="space-y-6">
-    <span class="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-4 py-1 text-sm font-semibold text-indigo-200">
-      <span class="h-2 w-2 rounded-full bg-indigo-300"></span>
-      Practice anywhere, anytime
-    </span>
-    <h1 class="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-      Build confident speech with real-time coaching
-    </h1>
-    <p class="text-base text-slate-200/80">
-      Record your delivery, compare it with guided examples, and get instant feedback on clarity.
-      With Speech Practice Coach you always know what to work on next.
-    </p>
-    <div class="flex flex-wrap items-center gap-3">
+<section class="hero">
+  <div class="hero-content">
+    <h1 class="hero-title">Supporting Speech Development</h1>
+    <p class="hero-subtitle">Empowering children and families on their journey to effective communication</p>
+    <div class="hero-buttons">
       {% if current_user.is_authenticated %}
-      <a href="{{ url_for('coach') }}" class="inline-flex items-center rounded-xl bg-emerald-500 px-5 py-3 text-base font-semibold text-white transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200">
-        Open Speech Coach
-      </a>
-      <a href="{{ url_for('dashboard') }}" class="inline-flex items-center rounded-xl border border-white/20 px-5 py-3 text-base font-semibold text-white transition hover:border-white/40">
-        View progress
-      </a>
+      <a href="{{ url_for('coach') }}" class="btn btn-primary">Open Speech Coach</a>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">View Progress</a>
       {% else %}
-      <a href="{{ url_for('login', next=url_for('coach')) }}" class="inline-flex items-center rounded-xl bg-indigo-500 px-5 py-3 text-base font-semibold text-white transition hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-200">
-        Sign in to start practicing
-      </a>
-      <a href="{{ url_for('register', next=url_for('coach')) }}" class="inline-flex items-center rounded-xl border border-white/20 px-5 py-3 text-base font-semibold text-white transition hover:border-white/40">
-        Create a free account
-      </a>
+      <a href="{{ url_for('login', next=url_for('coach')) }}" class="btn btn-primary">Sign In to Start</a>
+      <a href="{{ url_for('register', next=url_for('coach')) }}" class="btn btn-secondary">Get Started</a>
       {% endif %}
     </div>
-    <p class="text-xs uppercase tracking-[0.2em] text-slate-300/70">Secure | Browser based | Powered by Whisper</p>
   </div>
-  <div class="relative overflow-hidden rounded-3xl border border-white/10 bg-white/10 p-8 shadow-panel backdrop-blur-xl">
-    <div class="absolute right-6 top-6 rounded-full bg-emerald-400/30 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-100">Live preview</div>
-    <div class="space-y-6">
-      <div class="rounded-2xl bg-black/30 p-4">
-        <p class="text-sm uppercase tracking-wide text-indigo-200/90">Target sentence</p>
-        <p class="mt-2 text-lg text-white">Speaking clearly requires focus and confidence.</p>
+  <div class="hero-image">
+    <div class="illustration">🎤</div>
+  </div>
+</section>
+
+<section class="page-section" style="background-color: var(--bg-white);">
+  <div class="container">
+    <h2 class="section-title">How We Help</h2>
+    <div class="card-grid">
+      <div class="card">
+        <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">🎯</div>
+        <h3 style="text-align: center; margin-bottom: 1rem;">Early Intervention</h3>
+        <p style="text-align: center; color: var(--text-light);">Early identification and support can make a significant difference in speech development outcomes.</p>
       </div>
-      <div class="rounded-2xl bg-black/20 p-4">
-        <p class="text-sm uppercase tracking-wide text-emerald-200/90">Your transcript</p>
-        <p class="mt-2 text-lg text-slate-100/90">Speaking clearly requires a focus and confidence.</p>
+      <div class="card">
+        <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">👨‍👩‍👧‍👦</div>
+        <h3 style="text-align: center; margin-bottom: 1rem;">Family-Centered Approach</h3>
+        <p style="text-align: center; color: var(--text-light);">We work closely with families to create supportive environments for communication growth.</p>
       </div>
-      <div class="flex items-center justify-between rounded-2xl bg-black/30 p-4">
-        <div>
-          <p class="text-xs uppercase tracking-wide text-slate-300/70">Similarity score</p>
-          <p class="text-3xl font-semibold text-emerald-300">92%</p>
-        </div>
-        <div class="text-xs text-slate-300/80">Coaching tips are generated instantly after each attempt.</div>
+      <div class="card">
+        <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">📚</div>
+        <h3 style="text-align: center; margin-bottom: 1rem;">Educational Resources</h3>
+        <p style="text-align: center; color: var(--text-light);">Access to evidence-based strategies and resources to support speech development at home.</p>
+      </div>
+      <div class="card">
+        <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">🤝</div>
+        <h3 style="text-align: center; margin-bottom: 1rem;">Expert Guidance</h3>
+        <p style="text-align: center; color: var(--text-light);">Connect with qualified professionals who specialize in speech and language development.</p>
       </div>
     </div>
   </div>
 </section>
 
-<section class="mt-16 grid gap-6 md:grid-cols-3">
-  <div class="flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-    <div class="text-sm font-semibold text-indigo-200">Guided practice</div>
-    <p class="text-sm text-slate-200/80">Pick from curated sentences designed to sharpen clarity, pacing, and emphasis.</p>
+<section class="page-section" style="background-color: var(--bg-light);">
+  <div class="container">
+    <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+      <h2 style="font-size: 2.5rem; margin-bottom: 1.5rem;">Understanding Speech Delay</h2>
+      <p style="font-size: 1.1rem; color: var(--text-light); margin-bottom: 1.5rem; line-height: 1.8;">
+        Speech delay refers to when a child's speech and language development is slower than expected for their age. While every child develops at their own pace, early recognition and intervention can provide crucial support for communication skills.
+      </p>
+      <p style="font-size: 1.1rem; color: var(--text-light); margin-bottom: 2rem; line-height: 1.8;">
+        Our platform provides resources, guidance, and community support to help families navigate this journey with confidence and hope.
+      </p>
+    </div>
   </div>
-  <div class="flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-    <div class="text-sm font-semibold text-indigo-200">Real-time feedback</div>
-    <p class="text-sm text-slate-200/80">Get instant similarity scores powered by Whisper so you can iterate quickly.</p>
-  </div>
-  <div class="flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-    <div class="text-sm font-semibold text-indigo-200">Track progress</div>
-    <p class="text-sm text-slate-200/80">Return to the Speech Coach anytime and pick up right where you left off.</p>
+</section>
+
+<section class="page-section" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; text-align: center;">
+  <div class="container">
+    <h2 style="font-size: 2.5rem; margin-bottom: 1rem; color: white;">Ready to Get Started?</h2>
+    <p style="font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.95;">Join our community and access valuable resources for supporting speech development</p>
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('coach') }}" class="btn btn-large" style="background-color: white; color: var(--primary-color);">Start Practicing</a>
+    {% else %}
+    <a href="{{ url_for('register') }}" class="btn btn-large" style="background-color: white; color: var(--primary-color);">Sign Up Today</a>
+    {% endif %}
   </div>
 </section>
 {% endblock %}

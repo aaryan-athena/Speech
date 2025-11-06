@@ -4,62 +4,57 @@
     <meta charset="utf-8">
     <title>{% block title %}Speech Practice Coach{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['"Inter"', '"Segoe UI"', 'system-ui', 'sans-serif']
-            },
-            boxShadow: {
-              glow: '0 30px 80px rgba(79, 70, 229, 0.35)',
-              panel: '0 25px 60px rgba(15, 23, 42, 0.35)'
-            }
-          }
-        }
-      };
-    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=2">
     {% block head_extra %}{% endblock %}
   </head>
-  <body class="font-sans text-slate-100">
-    <div class="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900">
-      <nav class="border-b border-white/10 bg-black/40 backdrop-blur">
-        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4">
-          <a class="text-lg font-semibold text-white" href="{{ url_for('home') }}">Speech Practice Coach</a>
-          {% set endpoint = request.endpoint or '' %}
-          <div class="flex flex-wrap items-center gap-4">
-            <div class="flex flex-wrap items-center gap-3 text-sm">
-              <a class="{{ 'text-white' if endpoint == 'home' else 'text-slate-200/80 transition hover:text-white' }}" href="{{ url_for('home') }}">Home</a>
-              {% if current_user.is_authenticated %}
-              <a class="{{ 'text-white' if endpoint == 'dashboard' else 'text-slate-200/80 transition hover:text-white' }}" href="{{ url_for('dashboard') }}">Dashboard</a>
-              <a class="{{ 'text-white' if endpoint.startswith('ai.') else 'text-slate-200/80 transition hover:text-white' }}" href="{{ url_for('ai.ai_home') }}">Ai Companion</a>
-              {% endif %}
-              <a class="{{ 'text-white' if endpoint == 'coach' else 'text-slate-200/80 transition hover:text-white' }}" href="{{ url_for('coach') }}">Speech Coach</a>
-              {% if current_user.is_authenticated and current_user.is_admin %}
-              <a class="{{ 'text-white' if endpoint == 'admin_users' else 'text-slate-200/80 transition hover:text-white' }}" href="{{ url_for('admin_users') }}">Admin</a>
-              {% endif %}
-            </div>
-            <div class="flex flex-wrap items-center gap-3">
-              {% if current_user.is_authenticated %}
-              <span class="text-sm text-white/80">Hi, {{ current_user.id }}</span>
-              <form method="post" action="{{ url_for('logout') }}">
-                <button type="submit" class="inline-flex items-center rounded-xl bg-rose-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-200">Log out</button>
-              </form>
-              {% else %}
-              <a href="{{ url_for('login') }}" class="text-sm font-semibold text-white transition hover:text-indigo-200">Sign in</a>
-              <a href="{{ url_for('register') }}" class="inline-flex items-center rounded-xl bg-indigo-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-200">Get started</a>
-              {% endif %}
-            </div>
-          </div>
+  <body>
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="logo">
+          <h1><a href="{{ url_for('home') }}" style="color: inherit; text-decoration: none;">SpeechSupport</a></h1>
         </div>
-      </nav>
-      {% block page_wrapper %}
-      <main class="mx-auto w-full max-w-6xl px-4 py-12">
-        {% block content %}{% endblock %}
-      </main>
-      {% endblock %}
-    </div>
+        {% set endpoint = request.endpoint or '' %}
+        <ul class="nav-menu">
+          <li><a href="{{ url_for('home') }}" class="{{ 'active' if endpoint == 'home' else '' }}">Home</a></li>
+          {% if current_user.is_authenticated %}
+          <li><a href="{{ url_for('dashboard') }}" class="{{ 'active' if endpoint == 'dashboard' else '' }}">Dashboard</a></li>
+          <li><a href="{{ url_for('ai.ai_home') }}" class="{{ 'active' if endpoint.startswith('ai.') else '' }}">AI Companion</a></li>
+          <li><a href="{{ url_for('coach') }}" class="{{ 'active' if endpoint == 'coach' else '' }}">Speech Coach</a></li>
+          {% if current_user.is_authenticated and current_user.is_admin %}
+          <li><a href="{{ url_for('admin_users') }}" class="{{ 'active' if endpoint == 'admin_users' else '' }}">Admin</a></li>
+          {% endif %}
+          <li>
+            <form method="post" action="{{ url_for('logout') }}" style="display: inline;">
+              <button type="submit" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.9rem;">Log out</button>
+            </form>
+          </li>
+          {% else %}
+          <li><a href="{{ url_for('login') }}">Sign In</a></li>
+          <li><a href="{{ url_for('register') }}" class="btn btn-primary" style="padding: 8px 16px;">Sign Up</a></li>
+          {% endif %}
+        </ul>
+        <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </nav>
+    
+    {% block page_wrapper %}
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+    {% endblock %}
+    
+    <footer>
+      <div class="container">
+        <p>&copy; 2025 SpeechSupport. All rights reserved.</p>
+        <p>Supporting families on their communication journey</p>
+      </div>
+    </footer>
+    
+    <script src="{{ url_for('static', filename='js/navigation.js') }}"></script>
     {% block scripts %}{% endblock %}
   </body>
 </html>
