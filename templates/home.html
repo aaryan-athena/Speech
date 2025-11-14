@@ -2,7 +2,103 @@
 
 {% block title %}Speech Practice Coach{% endblock %}
 
+{% block head_extra %}
+<style>
+  .video-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    animation: fadeIn 0.3s;
+  }
+
+  .video-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .video-container {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    width: 1200px;
+  }
+
+  .video-container video {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .close-video {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    transition: opacity 0.3s;
+  }
+
+  .close-video:hover {
+    opacity: 0.7;
+  }
+
+  .skip-video {
+    position: absolute;
+    bottom: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: white;
+    color: var(--primary-color);
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .skip-video:hover {
+    background-color: var(--bg-light);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 20px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
+<!-- Intro Video Modal -->
+<div id="introVideoModal" class="video-modal">
+  <div class="video-container">
+    <button class="close-video" onclick="closeIntroVideo()">&times;</button>
+    <video id="introVideo" controls autoplay>
+      <source src="{{ url_for('static', filename='video/intro.mp4') }}" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+    <button class="skip-video" onclick="closeIntroVideo()">Skip Intro</button>
+  </div>
+</div>
+
 <section class="hero">
   <div class="hero-content">
     <h1 class="hero-title">Supporting Speech Development</h1>
@@ -18,7 +114,7 @@
     </div>
   </div>
   <div class="hero-image">
-    <div class="illustration">🎤</div>
+    <img src="{{ url_for('static', filename='media/hero.png') }}" alt="Speech Practice Coach">
   </div>
 </section>
 
@@ -75,4 +171,51 @@
     {% endif %}
   </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Check if user has already seen the intro video
+  const hasSeenIntro = sessionStorage.getItem('hasSeenIntro');
+  
+  function showIntroVideo() {
+    const modal = document.getElementById('introVideoModal');
+    const video = document.getElementById('introVideo');
+    modal.classList.add('active');
+    video.play();
+    
+    // Auto-close when video ends
+    video.addEventListener('ended', function() {
+      closeIntroVideo();
+    });
+  }
+  
+  function closeIntroVideo() {
+    const modal = document.getElementById('introVideoModal');
+    const video = document.getElementById('introVideo');
+    modal.classList.remove('active');
+    video.pause();
+    sessionStorage.setItem('hasSeenIntro', 'true');
+  }
+  
+  // Show intro video on first visit
+  if (!hasSeenIntro) {
+    // Wait a moment for page to load
+    setTimeout(showIntroVideo, 500);
+  }
+  
+  // Close modal when clicking outside video
+  document.getElementById('introVideoModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeIntroVideo();
+    }
+  });
+  
+  // Close modal with Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeIntroVideo();
+    }
+  });
+</script>
 {% endblock %}
